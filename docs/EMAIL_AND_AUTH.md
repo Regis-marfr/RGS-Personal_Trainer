@@ -34,10 +34,17 @@ Os e-mails são entregues com um layout escuro elegante, alinhado à identidade 
 
 ### 1. Cadastro do Aluno (`POST /api/auth/register`)
 1. O aluno preenche **Nome**, **Sobrenome**, **E-mail** e **Senha** na tela de registro do App.
-2. O servidor gera um código aleatório de 6 dígitos (Ex: `849201`).
-3. O servidor envia um e-mail HTML de boas-vindas com o código.
+2. O servidor gera um código aleatório de 6 dígitos (Ex: `849201`) com carimbo de data/hora (`code_created_at`).
+3. O servidor envia um e-mail HTML de boas-vindas informando o código com **validade de 30 minutos**.
 4. O aluno digita o código na tela de confirmação (`POST /api/auth/verify-email`).
-5. A conta é marcada como `is_verified = true` e o login é liberado.
+5. Caso passem mais de 30 minutos, o sistema rejeita o código com a mensagem: *"O código de confirmação expirou (validade: 30 minutos). Entre em contato com o seu Personal Trainer para solicitar um novo e-mail de ativação."*
+6. A conta é marcada como `is_verified = true` e o login é liberado.
+
+---
+
+### 2. Reenvio de Ativação pelo Personal Trainer (`POST /api/trainer/students/:id/resend-verification`)
+1. No CMS Administrativo, o Personal Trainer pode clicar no botão **`📩 Reenviar Ativação`** no card de qualquer aluno.
+2. O servidor renova o código de verificação de 6 dígitos, atualiza o timestamp `code_created_at = NOW()` e dispara um novo e-mail HTML com 30 minutos de validade para o aluno.
 
 ---
 

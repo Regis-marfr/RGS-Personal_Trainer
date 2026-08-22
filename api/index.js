@@ -29,6 +29,7 @@ if (dbUrl) {
         ssl: dbUrl.includes('localhost') ? false : { rejectUnauthorized: false }
     });
     console.log('[RGS API] Connected to PostgreSQL Database.');
+    pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS code_created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;`).catch(err => console.error('[DB Alter]', err));
 } else {
     console.log('[RGS API] PostgreSQL URL not provided. Running in Local Dev Mode with In-Memory store.');
 }
@@ -96,7 +97,7 @@ function buildEmailHtml(recipientName, title, bodyMessage, code, footerNote) {
           <div style="background:#0f0f11;border:2px dashed #c83e43;border-radius:12px;padding:24px;text-align:center;margin:0 0 28px;">
             <div style="font-size:11px;color:#71717a;letter-spacing:2px;margin-bottom:10px;">SEU CÓDIGO</div>
             <div style="font-size:38px;font-weight:900;color:#c83e43;letter-spacing:10px;">${code}</div>
-            <div style="font-size:11px;color:#52525b;margin-top:10px;">Válido por 15 minutos</div>
+            <div style="font-size:11px;color:#52525b;margin-top:10px;">Válido por 30 minutos</div>
           </div>
           <p style="color:#71717a;font-size:12px;line-height:1.6;margin:0;">${footerNote}</p>
         </td></tr>
@@ -136,7 +137,7 @@ async function sendEmailCode(toEmail, subject, code, recipientName, bodyMessage,
             to: toEmail,
             subject: subject,
             html: htmlContent,
-            text: `${subject}\n\nOlá ${recipientName},\n\nSeu código: ${code}\n\nVálido por 15 minutos.\n\nEquipe RGS Personal Trainer.`
+            text: `${subject}\n\nOlá ${recipientName},\n\nSeu código: ${code}\n\nVálido por 30 minutos.\n\nEquipe RGS Personal Trainer.`
         });
         console.log(`[RGS Mail] ✅ E-mail enviado para ${toEmail}`);
         return true;
@@ -194,8 +195,8 @@ app.post('/api/auth/register', async (req, res) => {
             if (existing.rows.length > 0) return res.status(400).json({ error: 'Este e-mail já está cadastrado.' });
 
             await pool.query(
-                `INSERT INTO users (name, email, password_hash, role, is_active, is_verified, verification_code)
-                 VALUES ($1, $2, $3, 'student', true, false, $4)`,
+                `INSERT INTO users (name, email, password_hash, role, is_active, is_verified, verification_code, code_created_at)
+                 VALUES ($1, $2, $3, 'student', true, false, $4, NOW())`,
                 [name.trim(), cleanEmail, passwordHash, verificationCode]
             );
         } else {
@@ -211,6 +212,7 @@ app.post('/api/auth/register', async (req, res) => {
                 is_active: true,
                 is_verified: false,
                 verification_code: verificationCode,
+                code_created_at: new Date(),
                 totp_enabled: false
             };
             memoryStore.users.push(newUser);
@@ -222,7 +224,7 @@ app.post('/api/auth/register', async (req, res) => {
             verificationCode,
             name.trim(),
             'você foi cadastrado no App RGS Personal Trainer! Para ativar sua conta, utilize o código abaixo no aplicativo.',
-            'Se você não criou uma conta no RGS Personal Trainer, ignore este e-mail.'
+            'Código válido por 30 minutos. Se você não criou uma conta no RGS Personal Trainer, ignore este e-mail.'
         );
 
         return res.json({ message: 'Cadastro iniciado! Enviamos um código de confirmação para seu e-mail.', email: cleanEmail });
@@ -244,11 +246,33 @@ app.post('/api/auth/verify-email', async (req, res) => {
             if (result.rows.length === 0) return res.status(404).json({ error: 'Usuário não encontrado.' });
             user = result.rows[0];
             if (user.verification_code !== (code || '').trim()) return res.status(400).json({ error: 'Código de verificação incorreto.' });
+
+            // Expiration check (30 minutes)
+            if (user.code_created_at) {
+                const elapsedMinutes = (Date.now() - new Date(user.code_created_at).getTime()) / (1000 * 60);
+                if (elapsedMinutes > 30) {
+                    return res.status(400).json({
+                        error: 'O código de confirmação expirou (validade: 30 minutos). Entre em contato com o seu Personal Trainer para solicitar um novo e-mail de ativação.'
+                    });
+                }
+            }
+
             await pool.query('UPDATE users SET is_verified = true, verification_code = NULL WHERE id = $1', [user.id]);
         } else {
             user = memoryStore.users.find(u => u.email === cleanEmail);
             if (!user) return res.status(404).json({ error: 'Usuário não encontrado.' });
             if (user.verification_code !== (code || '').trim()) return res.status(400).json({ error: 'Código de verificação incorreto.' });
+
+            // Expiration check (30 minutes)
+            if (user.code_created_at) {
+                const elapsedMinutes = (Date.now() - new Date(user.code_created_at).getTime()) / (1000 * 60);
+                if (elapsedMinutes > 30) {
+                    return res.status(400).json({
+                        error: 'O código de confirmação expirou (validade: 30 minutos). Entre em contato com o seu Personal Trainer para solicitar um novo e-mail de ativação.'
+                    });
+                }
+            }
+
             user.is_verified = true;
             user.verification_code = null;
         }
@@ -716,6 +740,51 @@ app.delete('/api/trainer/students/:id', authenticateToken, requireTrainer, async
     } catch (err) {
         console.error('[DeleteStudent]', err);
         res.status(500).json({ error: 'Erro ao excluir aluno.' });
+    }
+});
+
+// Resend Student Verification Email (Personal Trainer Action)
+app.post('/api/trainer/students/:id/resend-verification', authenticateToken, requireTrainer, async (req, res) => {
+    try {
+        const studentId = parseInt(req.params.id);
+        const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+        let studentEmail = '';
+        let studentName = '';
+
+        if (pool) {
+            const userRes = await pool.query('SELECT name, email FROM users WHERE id = $1 AND role = $2', [studentId, 'student']);
+            if (userRes.rows.length === 0) return res.status(404).json({ error: 'Aluno não encontrado.' });
+            studentName = userRes.rows[0].name;
+            studentEmail = userRes.rows[0].email;
+
+            await pool.query(
+                'UPDATE users SET verification_code = $1, code_created_at = NOW(), is_verified = false WHERE id = $2',
+                [verificationCode, studentId]
+            );
+        } else {
+            const student = memoryStore.users.find(u => u.id === studentId && u.role === 'student');
+            if (!student) return res.status(404).json({ error: 'Aluno não encontrado.' });
+            studentName = student.name;
+            studentEmail = student.email;
+            student.verification_code = verificationCode;
+            student.code_created_at = new Date();
+            student.is_verified = false;
+        }
+
+        await sendEmailCode(
+            studentEmail,
+            '✅ RGS Personal Trainer — Novo código de ativação',
+            verificationCode,
+            studentName,
+            'seu Personal Trainer enviou um novo código de ativação para sua conta. Utilize o código abaixo no aplicativo para ativar seu acesso.',
+            'Código válido por 30 minutos. Se você não solicitou este e-mail, entre em contato com seu Personal Trainer.'
+        );
+
+        res.json({ message: `Novo e-mail de ativação enviado com sucesso para ${studentName} (${studentEmail})!` });
+    } catch (err) {
+        console.error('[ResendVerification]', err);
+        res.status(500).json({ error: 'Erro ao reenviar e-mail de ativação.' });
     }
 });
 

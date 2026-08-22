@@ -20,9 +20,10 @@ Este manual descreve como utilizar todas as funcionalidades do **CMS Administrat
 ### 1. Gestão de Alunos (Aba "Alunos")
 - **Listagem de Alunos:** Exibe todos os alunos cadastrados no aplicativo.
 - **Ficha Anamnese:** Clique no nome do aluno para visualizar idade, peso, altura, objetivo e histórico médico.
-- **Bloqueio/Desbloqueio:** Botão para ativar ou suspender o acesso de um aluno.
-- **Alteração de Senha:** Altere a senha de qualquer aluno diretamente pelo CMS se ele esquecer.
-- **Histórico de Treinos:** Clique no botão "Histórico" na ficha do aluno para ver todos os treinos que ele já realizou e marcou como concluído, incluindo as observações que ele anotou.
+- **Bloqueio/Desbloqueio:** Botão `🚫 Bloquear` / `✅ Ativar` para liberar ou suspender a conta do aluno.
+- **Reenvio de Ativação:** Botão `📩 Reenviar Ativação` dispara um novo e-mail com código de confirmação válido por 30 minutos caso o aluno tenha perdido o prazo de ativação.
+- **Alteração de Senha:** Botão `🔑 Trocar Senha` para redefinir a senha de qualquer aluno diretamente pelo CMS.
+- **Exclusão Permanentemente:** Botão `🗑️ Excluir Aluno` (com confirmação de segurança) remove o aluno e todo o seu histórico, treinos e ficha de anamnese do sistema.
 
 ---
 
@@ -36,17 +37,20 @@ Este manual descreve como utilizar todas as funcionalidades do **CMS Administrat
    - Ajuste as Séries × Repetições (Ex: `3 × 12–15`).
    - Defina a previsão de Carga (Ex: `40–50 kg`).
    - Adicione uma Tag se desejar (Ex: `SUPERSET`, `BI-SET`, `DROP-SET`).
-   - Você pode adicionar **quantos exercícios quiser** para aquele dia!
-6. **Salvar Treino:** Clique em **"Salvar Treino do Dia"**. O treino estará imediatamente disponível no aplicativo do aluno.
+6. **Salvar / Excluir Treino:** 
+   - Clique em **"💾 Salvar e Publicar Treino do Dia"** para disponibilizar no aplicativo.
+   - Clique em **"🗑️ Excluir Treino do Dia"** para remover completamente a rotina do dia selecionado.
 
 ---
 
 ### 3. Biblioteca de Exercícios (Aba "Exercícios")
-- Permite cadastrar novos exercícios na biblioteca com categoria (QUADRÍCEPS, GLÚTEO, POSTERIOR, PEITO, COSTAS, OMBRO, BÍCEPS, TRÍCEPS, ABDÔMEN).
-- Os exercícios cadastrados ficam disponíveis para seleção rápida durante a montagem de treinos.
+- **Cadastrar Exercício:** Preencha o nome, categoria, séries/repetições recomendadas e carga sugerida.
+  - *Nota:* O campo *Séries × Repetições* possui um placeholder indicativo (`Ex: 3 × 12–15`) limpo, permitindo digitação direta sem necessidade de apagar textos pré-existentes.
+- **Excluir Exercício:** Botão `🗑️ Excluir` em cada item do acervo para remover o exercício da biblioteca.
 
 ---
 
 ### 4. Perfil do Personal (Aba "Meu Perfil")
 - Altere seu nome de exibição, título e bio.
 - Atualize a foto da sua marca/logo. Essa foto é exibida no topo do aplicativo de todos os seus alunos!
+

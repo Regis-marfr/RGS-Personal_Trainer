@@ -218,6 +218,9 @@ const AdminCMS = {
                     <button class="btn-secondary" style="font-size:11px; padding:4px 8px; flex:1; min-width:110px;" onclick="AdminCMS.toggleUserStatus(${s.id}, ${!s.is_active})">
                         ${s.is_active ? '🚫 Bloquear' : '✅ Ativar'}
                     </button>
+                    <button class="btn-secondary" style="font-size:11px; padding:4px 8px; flex:1; min-width:110px; border-color:#3b82f6; color:#60a5fa;" onclick="AdminCMS.resendStudentVerification(${s.id}, '${s.name.replace(/'/g, "\\'")}')">
+                        📩 Reenviar Ativação
+                    </button>
                     <button class="btn-secondary" style="font-size:11px; padding:4px 8px; flex:1; min-width:110px; border-color:var(--accent-gold); color:var(--accent-gold);" onclick="AdminCMS.openPasswordModal(${s.id}, '${s.name.replace(/'/g, "\\'")}')">
                         🔑 Trocar Senha
                     </button>
@@ -231,6 +234,18 @@ const AdminCMS = {
         if (selectElem) {
             selectElem.innerHTML = students.map(s => `<option value="${s.id}">${s.name} (${s.email})</option>`).join('');
             this.loadStudentWorkoutForDay();
+        }
+    },
+
+    async resendStudentVerification(studentId, studentName) {
+        try {
+            showAdminToast(`Enviando novo e-mail para ${studentName}...`, 'info');
+            const res = await adminApiFetch(`/trainer/students/${studentId}/resend-verification`, {
+                method: 'POST'
+            });
+            showAdminToast(res.message || `E-mail de ativação reenviado com sucesso!`, 'success');
+        } catch (err) {
+            showAdminToast(err.message || 'Erro ao reenviar e-mail de ativação.', 'error');
         }
     },
 
