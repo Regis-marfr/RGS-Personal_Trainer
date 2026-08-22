@@ -187,13 +187,7 @@ const AdminCMS = {
             const students = await adminApiFetch('/trainer/students');
             this.renderStudents(students);
         } catch (err) {
-            // Fallback demo students data if backend offline
-            const demoStudents = JSON.parse(localStorage.getItem('rgs_demo_students') || JSON.stringify([
-                { id: 2, name: 'Débora Piaia', email: 'debora@piaia.com', goal: 'HIPERTROFIA + DEFINIÇÃO', is_active: true },
-                { id: 3, name: 'Lucas Garcia', email: 'lucas@gmail.com', goal: 'CONDICIONAMENTO FÍSICO', is_active: true },
-                { id: 4, name: 'Mariana Silva', email: 'mariana@hotmail.com', goal: 'EMAGRECIMENTO', is_active: false }
-            ]));
-            this.renderStudents(demoStudents);
+            this.renderStudents([]);
         }
     },
 
