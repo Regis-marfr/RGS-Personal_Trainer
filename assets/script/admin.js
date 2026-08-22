@@ -214,12 +214,15 @@ const AdminCMS = {
                 <div style="font-size:12px; color:var(--accent-gold); margin-bottom:10px;">
                     🎯 <b>Objetivo:</b> ${s.goal || 'Hipertrofia + Definição'}
                 </div>
-                <div style="display:flex; gap:6px;">
-                    <button class="btn-secondary" style="font-size:11px; padding:4px 8px; flex:1;" onclick="AdminCMS.toggleUserStatus(${s.id}, ${!s.is_active})">
-                        ${s.is_active ? '🚫 Bloquear Aluno' : '✅ Ativar Aluno'}
+                <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                    <button class="btn-secondary" style="font-size:11px; padding:4px 8px; flex:1; min-width:110px;" onclick="AdminCMS.toggleUserStatus(${s.id}, ${!s.is_active})">
+                        ${s.is_active ? '🚫 Bloquear' : '✅ Ativar'}
                     </button>
-                    <button class="btn-secondary" style="font-size:11px; padding:4px 8px; flex:1; border-color:var(--accent-gold); color:var(--accent-gold);" onclick="AdminCMS.openPasswordModal(${s.id}, '${s.name}')">
+                    <button class="btn-secondary" style="font-size:11px; padding:4px 8px; flex:1; min-width:110px; border-color:var(--accent-gold); color:var(--accent-gold);" onclick="AdminCMS.openPasswordModal(${s.id}, '${s.name.replace(/'/g, "\\'")}')">
                         🔑 Trocar Senha
+                    </button>
+                    <button class="btn-secondary" style="font-size:11px; padding:4px 8px; flex:1; min-width:110px; border-color:#e94b50; color:#e94b50;" onclick="AdminCMS.deleteStudent(${s.id}, '${s.name.replace(/'/g, "\\'")}')">
+                        🗑️ Excluir Aluno
                     </button>
                 </div>
             </div>
@@ -249,6 +252,20 @@ const AdminCMS = {
             }
             showAdminToast(`Status do aluno alterado para ${newStatus ? 'Ativo' : 'Bloqueado'}!`, 'success');
             this.loadStudents();
+        }
+    },
+
+    async deleteStudent(studentId, studentName) {
+        if (!confirm(`Tem certeza que deseja excluir permanentemente o aluno "${studentName}"?\n\nTodos os treinos e dados deste aluno serão removidos.`)) {
+            return;
+        }
+
+        try {
+            await adminApiFetch(`/trainer/students/${studentId}`, { method: 'DELETE' });
+            showAdminToast(`Aluno ${studentName} excluído com sucesso!`, 'success');
+            this.loadStudents();
+        } catch (err) {
+            showAdminToast(err.message || 'Erro ao excluir aluno.', 'error');
         }
     },
 
@@ -562,6 +579,31 @@ const AdminCMS = {
             localStorage.setItem(storeKey, JSON.stringify(existing));
 
             showAdminToast(`Treino de ${dayCode} publicado! (${exercises.length} exercícios)`, 'success');
+        }
+    },
+
+    async deleteWorkoutRoutine() {
+        const studentSelect = document.getElementById('builderStudentSelect');
+        const daySelect = document.getElementById('builderDayCode');
+
+        if (!studentSelect || !studentSelect.value) {
+            showAdminToast('Selecione um aluno.', 'error');
+            return;
+        }
+
+        const studentId = parseInt(studentSelect.value);
+        const dayCode = daySelect ? daySelect.value : 'SEG';
+
+        if (!confirm(`Tem certeza que deseja excluir o treino de ${dayCode} para este aluno?`)) {
+            return;
+        }
+
+        try {
+            await adminApiFetch(`/trainer/workouts/${studentId}/${dayCode}`, { method: 'DELETE' });
+            showAdminToast(`Treino de ${dayCode} excluído com sucesso!`, 'success');
+            this.loadStudentWorkoutForDay();
+        } catch (err) {
+            showAdminToast(err.message || 'Erro ao excluir treino do dia.', 'error');
         }
     },
 

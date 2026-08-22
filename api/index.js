@@ -226,7 +226,7 @@ app.post('/api/auth/register', async (req, res) => {
         return res.json({ message: 'Cadastro iniciado! Enviamos um código de confirmação para seu e-mail.', email: cleanEmail });
     } catch (err) {
         console.error('[Register]', err);
-        res.status(500).json({ error: 'Erro interno ao realizar cadastro: ' + (err.message || err) });
+        res.status(500).json({ error: 'Erro interno ao realizar cadastro.' });
     }
 });
 
@@ -313,7 +313,7 @@ app.post('/api/auth/login', async (req, res) => {
         });
     } catch (err) {
         console.error('[Login]', err);
-        res.status(500).json({ error: 'Erro no servidor ao realizar login: ' + (err.message || err) });
+        res.status(500).json({ error: 'Erro no servidor ao realizar login.' });
     }
 });
 
@@ -692,6 +692,31 @@ app.put('/api/trainer/students/:id/password', authenticateToken, requireTrainer,
     }
 });
 
+// Delete Student Account
+app.delete('/api/trainer/students/:id', authenticateToken, requireTrainer, async (req, res) => {
+    try {
+        const studentId = parseInt(req.params.id);
+        if (pool) {
+            await pool.query('DELETE FROM student_anamnese WHERE student_id = $1', [studentId]);
+            await pool.query('DELETE FROM workout_history WHERE student_id = $1', [studentId]);
+            const wk = await pool.query('SELECT id FROM workouts WHERE student_id = $1', [studentId]);
+            for (const r of wk.rows) {
+                await pool.query('DELETE FROM workout_exercises WHERE workout_id = $1', [r.id]);
+            }
+            await pool.query('DELETE FROM workouts WHERE student_id = $1', [studentId]);
+            await pool.query('DELETE FROM users WHERE id = $1 AND role = $2', [studentId, 'student']);
+        } else {
+            const idx = memoryStore.users.findIndex(u => u.id === studentId && u.role === 'student');
+            if (idx !== -1) memoryStore.users.splice(idx, 1);
+            delete memoryStore.workouts[studentId];
+        }
+        res.json({ message: 'Aluno e todos os seus dados foram excluídos com sucesso!' });
+    } catch (err) {
+        console.error('[DeleteStudent]', err);
+        res.status(500).json({ error: 'Erro ao excluir aluno.' });
+    }
+});
+
 // Exercise Library Management
 app.get('/api/trainer/exercises', authenticateToken, async (req, res) => {
     if (pool) {
@@ -752,6 +777,30 @@ app.post('/api/trainer/workouts', authenticateToken, requireTrainer, async (req,
     } catch (err) {
         console.error('[SaveWorkout]', err);
         res.status(500).json({ error: 'Erro ao salvar treino.' });
+    }
+});
+
+// Delete Workout Routine for a specific day
+app.delete('/api/trainer/workouts/:studentId/:dayCode', authenticateToken, requireTrainer, async (req, res) => {
+    try {
+        const studentId = parseInt(req.params.studentId);
+        const dayCode = req.params.dayCode.toUpperCase();
+        if (pool) {
+            const wk = await pool.query('SELECT id FROM workouts WHERE student_id = $1 AND day_code = $2', [studentId, dayCode]);
+            if (wk.rows.length > 0) {
+                const workoutId = wk.rows[0].id;
+                await pool.query('DELETE FROM workout_exercises WHERE workout_id = $1', [workoutId]);
+                await pool.query('DELETE FROM workouts WHERE id = $1', [workoutId]);
+            }
+        } else {
+            if (memoryStore.workouts[studentId] && memoryStore.workouts[studentId][dayCode]) {
+                delete memoryStore.workouts[studentId][dayCode];
+            }
+        }
+        res.json({ message: `Treino de ${dayCode} excluído com sucesso!` });
+    } catch (err) {
+        console.error('[DeleteWorkout]', err);
+        res.status(500).json({ error: 'Erro ao excluir treino do dia.' });
     }
 });
 

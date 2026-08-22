@@ -440,7 +440,10 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn-primary" style="width: 100%; margin-top: 20px; padding: 12px; font-size: 14px;">💾 Salvar e Publicar Treino do Dia</button>
+                <div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
+                    <button type="submit" class="btn-primary" style="flex: 2; padding: 12px; font-size: 14px; min-width: 200px;">💾 Salvar e Publicar Treino do Dia</button>
+                    <button type="button" class="btn-secondary" style="flex: 1; padding: 12px; font-size: 13px; border-color: #e94b50; color: #e94b50; min-width: 160px;" onclick="AdminCMS.deleteWorkoutRoutine()">🗑️ Excluir Treino do Dia</button>
+                </div>
             </form>
         </section>
     </div>
