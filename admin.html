@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#090909">
+    <title>Painel Administrativo | RGS Personal Trainer</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        /* Admin-specific overrides — body is desktop-wide, not smartphone-capped */
+        body {
+            background: radial-gradient(ellipse at top, #1a0b0c 0%, #090909 60%);
+            min-height: 100vh;
+        }
+
+        /* 
+         * LOGIN PAGE: wrap the card exactly like the app's modal-overlay + modal-card
+         * so it looks identical to the student login screen.
+         */
+        .admin-login-page {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px 16px;
+        }
+
+        .admin-login-card {
+            background: #141416;
+            border: 1px solid #363639;
+            border-radius: 18px;
+            width: 100%;
+            max-width: 440px;
+            padding: 32px 28px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 60px rgba(233,75,80,0.08);
+        }
+
+        .admin-login-brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+
+        .admin-login-brand .logo {
+            width: 52px;
+            height: 52px;
+        }
+
+        .admin-login-brand .brand-text h1 {
+            font-size: 18px;
+        }
+
+        .admin-login-divider {
+            border: none;
+            border-top: 1px solid #29292b;
+            margin-bottom: 20px;
+        }
+
+        .admin-login-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #eeeeee;
+            margin-bottom: 4px;
+        }
+
+        .admin-login-sub {
+            font-size: 12px;
+            color: #777777;
+            margin-bottom: 24px;
+        }
+
+        /* ─── Dashboard layout ─── */
+        .admin-dashboard {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 24px 16px 40px;
+        }
+
+        .admin-header-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #101011;
+            border: 1px solid #29292b;
+            border-radius: 18px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+        }
+
+        .admin-header-bar .brand {
+            gap: 12px;
+        }
+
+        .admin-header-bar .brand-text h1 {
+            font-size: 17px;
+        }
+
+        .admin-header-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .admin-tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 1px solid #29292b;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .admin-tabs::-webkit-scrollbar { display: none; }
+
+        .admin-tab-btn {
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: #777777;
+            font-weight: 600;
+            font-size: 13px;
+            padding: 12px 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            font-family: inherit;
+        }
+
+        .admin-tab-btn:hover {
+            color: #eeeeee;
+        }
+
+        .admin-tab-btn.active {
+            color: #e94b50;
+            border-bottom-color: #e94b50;
+        }
+
+        .admin-panel {
+            background: #101011;
+            border: 1px solid #29292b;
+            border-radius: 18px;
+            padding: 24px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+            margin-bottom: 16px;
+        }
+
+        .admin-panel h3 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: #eeeeee;
+        }
+
+        .admin-panel .panel-sub {
+            font-size: 12px;
+            color: #777777;
+            margin-bottom: 20px;
+        }
+
+        .student-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 12px;
+        }
+
+        .exercise-item {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid #29292b;
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .add-exercise-form {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid #29292b;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+
+        /* ─── Responsiveness ─── */
+        @media (max-width: 600px) {
+            .admin-header-bar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+            .admin-header-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+            .admin-header-actions .btn-primary, 
+            .admin-header-actions .btn-secondary {
+                flex: 1;
+                text-align: center;
+            }
+            .admin-panel {
+                padding: 16px;
+            }
+            .student-grid {
+                grid-template-columns: 1fr;
+            }
+            .exercise-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            .exercise-item > div:last-child {
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ═══════════════════════════════════════════════ -->
+    <!-- LOGIN VIEW                                      -->
+    <!-- ═══════════════════════════════════════════════ -->
+    <div class="admin-login-page" id="adminLoginPage">
+        <div class="admin-login-card">
+
+            <!-- Brand Header — same as app header -->
+            <div class="admin-login-brand">
+                <div class="logo" id="adminLoginLogo">RGS</div>
+                <div class="brand-text">
+                    <div class="eyebrow">PAINEL ADMINISTRATIVO</div>
+                    <h1>Personal Trainer CMS</h1>
+                </div>
+            </div>
+
+            <hr class="admin-login-divider">
+
+            <div class="admin-login-title">🔐 Acesso Restrito</div>
+            <p class="admin-login-sub">Entre com suas credenciais de Personal Trainer para gerenciar alunos, exercícios e treinos.</p>
+
+            <form onsubmit="event.preventDefault(); AdminCMS.login(
+                document.getElementById('adminEmail').value,
+                document.getElementById('adminPassword').value,
+                document.getElementById('admin2faCode').value
+            );">
+                <div class="form-group">
+                    <label>E-mail ou Usuário</label>
+                    <input type="text" id="adminEmail" class="form-control" placeholder="Usuário administrador" autocomplete="username" required>
+                </div>
+                <div class="form-group">
+                    <label>Senha</label>
+                    <input type="password" id="adminPassword" class="form-control" placeholder="sua senha" autocomplete="current-password" required>
+                </div>
+                <div class="form-group" id="admin2faGroup" style="display: none;">
+                    <label style="color: var(--accent-gold);">Código 2FA (App Autenticador)</label>
+                    <input type="text" id="admin2faCode" class="form-control" placeholder="Ex: 123456" maxlength="6">
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%; margin-top: 8px;">Entrar no Painel CMS</button>
+            </form>
+
+            <div style="margin-top: 20px; text-align: center; font-size: 12px; color: var(--text-muted);">
+                <a href="index.html" style="color: var(--text-muted); text-decoration: underline;">📲 Voltar ao aplicativo dos alunos</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════ -->
+    <!-- DASHBOARD VIEW (hidden until logged in)        -->
+    <!-- ═══════════════════════════════════════════════ -->
+    <div class="admin-dashboard" id="adminDashboard" style="display: none;">
+
+        <!-- Top Bar -->
+        <div class="admin-header-bar">
+            <div class="brand">
+                <div class="logo" id="adminDashLogo">RGS</div>
+                <div class="brand-text">
+                    <div class="eyebrow">PAINEL ADMINISTRATIVO</div>
+                    <h1>Personal Trainer CMS</h1>
+                </div>
+            </div>
+            <div class="admin-header-actions">
+                <a href="index.html" class="btn-secondary" style="font-size: 12px; padding: 8px 14px; text-decoration: none; white-space: nowrap; height: fit-content;">📲 App dos Alunos</a>
+                <button class="btn-primary" style="font-size: 12px; padding: 8px 14px; white-space: nowrap; height: fit-content;" onclick="AdminCMS.logout()">🚪 Sair</button>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="admin-tabs">
+            <button class="admin-tab-btn active" onclick="AdminCMS.switchTab('tabStudents', this)">👥 Alunos</button>
+            <button class="admin-tab-btn" onclick="AdminCMS.switchTab('tabProfile', this)">📸 Perfil do Personal</button>
+            <button class="admin-tab-btn" onclick="AdminCMS.switchTab('tabExercises', this)">🏋️ Exercícios</button>
+            <button class="admin-tab-btn" onclick="AdminCMS.switchTab('tabWorkouts', this)">📝 Montar Treinos</button>
+        </div>
+
+        <!-- TAB 1: ALUNOS -->
+        <section class="admin-panel admin-tab-content" id="tabStudents">
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 20px;">
+                <div style="flex: 1;">
+                    <h3>Gestão de Alunos</h3>
+                    <p class="panel-sub" style="margin-bottom: 0;">Ative, bloqueie e acompanhe o objetivo de cada aluno cadastrado.</p>
+                </div>
+                <button class="btn-secondary" style="font-size: 12px; padding: 6px 14px; white-space: nowrap; height: fit-content;" onclick="AdminCMS.loadStudents()">🔄 Atualizar</button>
+            </div>
+            <div id="adminStudentsList" class="student-grid">
+                <p style="color: var(--text-muted);">Carregando alunos...</p>
+            </div>
+        </section>
+
+        <!-- TAB 2: PERFIL DO PERSONAL -->
+        <section class="admin-panel admin-tab-content" id="tabProfile" style="display: none;">
+            <h3>Perfil do Personal Trainer</h3>
+            <p class="panel-sub">Sua foto substituirá a logo padrão "RGS" no topo do aplicativo de <strong style="color:#eeeeee;">todos os alunos</strong>!</p>
+
+            <div class="avatar-upload" style="margin-bottom: 24px;">
+                <div class="avatar-preview" id="adminPhotoPreview">RGS</div>
+                <div style="flex: 1;">
+                    <label class="form-group" style="margin: 0; font-size: 12px; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 6px;">Foto de Perfil</label>
+                    <input type="file" id="adminPhotoInput" accept="image/*" class="form-control">
+                    <input type="hidden" id="adminPhotoBase64">
+                </div>
+            </div>
+
+            <form onsubmit="event.preventDefault(); AdminCMS.saveProfile(
+                document.getElementById('adminTrainerName').value,
+                document.getElementById('adminTrainerTitle').value,
+                document.getElementById('adminTrainerBio').value,
+                document.getElementById('adminPhotoBase64').value
+            );">
+                <div class="form-group">
+                    <label>Nome Profissional</label>
+                    <input type="text" id="adminTrainerName" class="form-control" value="Regis Personal" required>
+                </div>
+                <div class="form-group">
+                    <label>Título / Marca (aparece no app dos alunos)</label>
+                    <input type="text" id="adminTrainerTitle" class="form-control" value="REGIS · PERSONAL TRAINER" required>
+                </div>
+                <div class="form-group">
+                    <label>Biografia / Apresentação</label>
+                    <textarea id="adminTrainerBio" class="form-control" placeholder="Sua apresentação para os alunos..."></textarea>
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%;">Salvar Perfil do Personal</button>
+            </form>
+        </section>
+
+        <!-- TAB 3: EXERCÍCIOS -->
+        <section class="admin-panel admin-tab-content" id="tabExercises" style="display: none;">
+            <h3>Acervo de Exercícios</h3>
+            <p class="panel-sub">Cadastre novos exercícios para usar na montagem de treinos dos alunos.</p>
+
+            <div class="add-exercise-form">
+                <form onsubmit="event.preventDefault(); AdminCMS.addExercise(
+                    document.getElementById('adminExName').value,
+                    document.getElementById('adminExCategory').value,
+                    document.getElementById('adminExSetsReps').value,
+                    document.getElementById('adminExLoad').value
+                );">
+                    <div class="form-group">
+                        <label>Nome do Exercício</label>
+                        <input type="text" id="adminExName" class="form-control" placeholder="Ex: Agachamento Búlgaro" required>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div class="form-group">
+                            <label>Categoria / Músculo</label>
+                            <input type="text" id="adminExCategory" class="form-control" placeholder="QUADRÍCEPS, GLÚTEO..." required>
+                        </div>
+                        <div class="form-group">
+                            <label>Séries × Repetições</label>
+                            <input type="text" id="adminExSetsReps" class="form-control" value="3 × 12–15" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Carga Padrão Recomendada</label>
+                        <input type="text" id="adminExLoad" class="form-control" placeholder="Ex: 40–50 kg">
+                    </div>
+                    <button type="submit" class="btn-primary" style="width: 100%;">+ Adicionar ao Acervo</button>
+                </form>
+            </div>
+
+            <h4 style="font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px;">Exercícios Cadastrados</h4>
+            <div id="adminExercisesList">
+                <p style="color: var(--text-muted);">Carregando exercícios...</p>
+            </div>
+        </section>
+
+        <!-- TAB 4: MONTAR TREINOS -->
+        <section class="admin-panel admin-tab-content" id="tabWorkouts" style="display: none;">
+            <h3>Montar Ficha de Treino</h3>
+            <p class="panel-sub">Monte e publique a rotina personalizada por aluno e dia da semana.</p>
+
+            <form onsubmit="event.preventDefault(); AdminCMS.saveWorkoutRoutine();">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="form-group">
+                        <label>Selecionar Aluno</label>
+                        <select id="builderStudentSelect" class="form-control" required onchange="AdminCMS.loadStudentWorkoutForDay()">
+                            <option value="">Carregando alunos...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Dia da Semana</label>
+                        <select id="builderDayCode" class="form-control" required onchange="AdminCMS.loadStudentWorkoutForDay()">
+                            <option value="SEG">SEG — Segunda-feira</option>
+                            <option value="TER">TER — Terça-feira</option>
+                            <option value="QUA">QUA — Quarta-feira</option>
+                            <option value="QUI">QUI — Quinta-feira</option>
+                            <option value="SEX">SEX — Sexta-feira</option>
+                            <option value="SAB">SAB — Sábado</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Título do Treino</label>
+                    <input type="text" id="builderWorkoutTitle" class="form-control" placeholder="Ex: QUADRÍCEPS FOCADO" required>
+                </div>
+                <div class="form-group">
+                    <label>Instruções de Aquecimento</label>
+                    <input type="text" id="builderWarmup" class="form-control" value="5 min de aquecimento + mobilidade específica + 1 série leve.">
+                </div>
+
+                <!-- SEÇÃO DINÂMICA DE SELEÇÃO DE EXERCÍCIOS -->
+                <div style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                        <div>
+                            <h4 style="margin: 0; font-size: 15px; color: #fff;">Exercícios do Dia <span id="builderExerciseCount" style="font-size:12px; color:var(--primary-red); margin-left:6px;">(0)</span></h4>
+                            <p style="margin: 2px 0 0 0; font-size: 12px; color: var(--text-muted);">
+                                Selecione do acervo e adicione quantos exercícios desejar para este dia.
+                            </p>
+                        </div>
+                        <button type="button" class="btn-secondary" style="font-size: 12px; padding: 6px 14px; white-space: nowrap;" onclick="AdminCMS.addExerciseToBuilder()">
+                            ➕ Adicionar Exercício
+                        </button>
+                    </div>
+
+                    <div id="builderExercisesContainer" style="display: flex; flex-direction: column; gap: 10px;">
+                        <p style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 16px; background: #141416; border-radius: 8px; border: 1px dashed var(--border-color);">
+                            Nenhum exercício adicionado para este dia ainda. Clique em "+ Adicionar Exercício" acima!
+                        </p>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary" style="width: 100%; margin-top: 20px; padding: 12px; font-size: 14px;">💾 Salvar e Publicar Treino do Dia</button>
+            </form>
+        </section>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════ -->
+    <!-- PASSWORD CHANGE MODAL                           -->
+    <!-- ═══════════════════════════════════════════════ -->
+    <div class="modal-overlay" id="adminPasswordModal">
+        <div class="modal-card" style="max-width: 400px;">
+            <div class="modal-header">
+                <div class="modal-title">🔑 Alterar Senha do Aluno</div>
+                <button class="modal-close" onclick="AdminCMS.closePasswordModal()">✕</button>
+            </div>
+            
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
+                Crie uma nova senha de acesso para o aluno <strong id="pwdStudentName" style="color: #fff;"></strong>.
+            </p>
+
+            <form onsubmit="event.preventDefault(); AdminCMS.changeStudentPassword();">
+                <input type="hidden" id="pwdStudentId">
+                <div class="form-group">
+                    <label>Nova Senha Temporária</label>
+                    <input type="password" id="pwdNewPassword" class="form-control" placeholder="••••••••" required>
+                    <div class="password-rules">Sugerimos pelo menos 8 caracteres com letras e números.</div>
+                </div>
+                <div class="actions" style="margin-top: 10px;">
+                    <button type="button" class="btn-secondary" onclick="AdminCMS.closePasswordModal()">Cancelar</button>
+                    <button type="submit" class="btn-primary">Salvar Nova Senha</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════ -->
+    <!-- STUDENT HISTORY MODAL (CMS)                     -->
+    <!-- ═══════════════════════════════════════════════ -->
+    <div class="modal-overlay" id="adminStudentHistoryModal">
+        <div class="modal-card" style="max-width: 500px; max-height: 85vh; display: flex; flex-direction: column;">
+            <div class="modal-header">
+                <div class="modal-title">📜 Histórico de <span id="historyStudentName"></span></div>
+                <button class="modal-close" onclick="AdminCMS.closeStudentHistory()">&#x2715;</button>
+            </div>
+            <div id="adminHistoryList" style="overflow-y: auto; flex: 1; padding: 4px 0;">
+                <p style="color: var(--text-muted); text-align: center; padding: 24px;">Carregando...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/script/admin.js"></script>
+</body>
+</html>

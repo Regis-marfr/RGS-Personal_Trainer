@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#090909">
+    <title>RGS Personal Trainer</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body>
+    <div class="app">
+        <!-- Brand Header -->
+        <header>
+            <div class="header-top-bar">
+                <div class="brand">
+                    <div class="logo" id="brandLogo">RGS</div>
+                    <div class="brand-text">
+                        <div class="eyebrow" id="eyebrowText">REGIS · PERSONAL TRAINER</div>
+                        <h1>Treino Personalizado</h1>
+                    </div>
+                </div>
+                <div class="header-user-menu">
+                    <button class="user-avatar-btn" id="userAvatarBtn" onclick="toggleUserDropdown(event)" title="Opções do Aluno">
+                        <span id="userInitials">--</span>
+                    </button>
+
+                    <!-- Janela Flutuante (Dropdown) do Aluno -->
+                    <div class="user-dropdown-menu" id="userDropdownMenu">
+                        <div class="user-dropdown-header">
+                            <strong id="dropdownUserName">Carregando...</strong>
+                            <small id="dropdownUserEmail">...</small>
+                        </div>
+                        <div class="user-dropdown-divider"></div>
+                        <button type="button" class="user-dropdown-item" onclick="closeUserDropdown(); openModal('profileModal');">
+                            <span>⚙️ Configurações & Segurança</span>
+                        </button>
+                        <button type="button" class="user-dropdown-item" onclick="closeUserDropdown(); openHistoryModal();">
+                            <span>📜 Histórico de Treinos</span>
+                        </button>
+                        <div class="user-dropdown-divider"></div>
+                        <button type="button" class="user-dropdown-item logout-item" onclick="closeUserDropdown(); Auth.logout();">
+                            <span>🚪 Sair da Conta</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="info">
+                <div>
+                    <small>ALUNO(A)</small>
+                    <b id="studentNameHeader">...</b>
+                </div>
+                <div>
+                    <small>OBJETIVO</small>
+                    <b class="goal" id="studentGoalHeader">HIPERTROFIA + DEFINIÇÃO</b>
+                </div>
+            </div>
+        </header>
+
+        <!-- Sticky Day Navigation -->
+        <nav class="days" id="days">
+            <!-- Rendered dynamically by JavaScript -->
+        </nav>
+
+        <!-- Main Workout Content Area -->
+        <main id="main">
+            <!-- Rendered dynamically by JavaScript -->
+        </main>
+    </div>
+
+    <!-- Rest Timer Floating Overlay -->
+    <div class="timer" id="timer">
+        <div class="timer-info">
+            <span>⏱️ Descanso:</span>
+            <b id="clock">01:30</b>
+        </div>
+        <button class="btn-primary" onclick="closeTimer()">Fechar</button>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- MODALS SECTION -->
+    <!-- ========================================================= -->
+
+    <!-- 1. LOGIN MODAL -->
+    <div class="modal-overlay" id="authModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title">🔐 Entrar no RGS Personal</div>
+            </div>
+            <form onsubmit="event.preventDefault(); Auth.login(document.getElementById('loginEmail').value, document.getElementById('loginPassword').value, document.getElementById('login2faCode')?.value);">
+                <div class="form-group">
+                    <label>E-mail</label>
+                    <input type="email" id="loginEmail" class="form-control" placeholder="seu@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Senha</label>
+                    <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" required>
+                </div>
+                <div class="form-group" id="2faFieldGroup" style="display: none;">
+                    <label style="color:var(--accent-gold);">Código 2FA (App Autenticador)</label>
+                    <input type="text" id="login2faCode" class="form-control" placeholder="Ex.: 123456" maxlength="6">
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%; margin-top: 10px;">Entrar</button>
+            </form>
+            <div style="margin-top: 16px; font-size: 13px; text-align: center; color: var(--text-muted);">
+                <p>Não tem conta? <a href="#" style="color: var(--primary-red);" onclick="closeModal('authModal'); openModal('registerModal');">Cadastre-se</a></p>
+                <p style="margin-top: 6px;"><a href="#" style="color: var(--text-secondary);" onclick="closeModal('authModal'); openModal('forgotModal');">Esqueceu a senha?</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. REGISTER MODAL (With Password Strength Meter) -->
+    <div class="modal-overlay" id="registerModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title">📝 Criar Conta de Aluno</div>
+                <button class="modal-close" onclick="closeModal('registerModal')">✕</button>
+            </div>
+            <form onsubmit="event.preventDefault(); Auth.register(document.getElementById('regFirstName').value, document.getElementById('regLastName').value, document.getElementById('regEmail').value, document.getElementById('regPassword').value);">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="form-group">
+                        <label>Seu Nome</label>
+                        <input type="text" id="regFirstName" class="form-control" placeholder="Ex: Lucas" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Sobrenome</label>
+                        <input type="text" id="regLastName" class="form-control" placeholder="Ex: Garcia" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>E-mail</label>
+                    <input type="email" id="regEmail" class="form-control" placeholder="seu@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Criar Senha Forte</label>
+                    <input type="password" id="regPassword" class="form-control" placeholder="••••••••" required>
+                    
+                    <!-- Password Strength Meter Visual Indicator -->
+                    <div class="strength-meter">
+                        <div class="strength-bar-bg">
+                            <div class="strength-bar-fill" id="regStrengthFill"></div>
+                        </div>
+                        <div class="strength-text">
+                            <span id="regStrengthText">Força da senha</span>
+                        </div>
+                        <div class="password-rules" id="regPasswordRules">
+                            <div class="rule-item rule-len"><span>• Mínimo 8 caracteres</span></div>
+                            <div class="rule-item rule-upper"><span>• Pelo menos 1 letra maiúscula</span></div>
+                            <div class="rule-item rule-lower"><span>• Pelo menos 1 letra minúscula</span></div>
+                            <div class="rule-item rule-num"><span>• Pelo menos 1 número</span></div>
+                            <div class="rule-item rule-spec"><span>• Pelo menos 1 caractere especial (!@#$)</span></div>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%; margin-top: 14px;">Criar Conta</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 3. EMAIL CODE VERIFICATION MODAL -->
+    <div class="modal-overlay" id="verifyModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title">✉️ Confirmar E-mail</div>
+                <button class="modal-close" onclick="closeModal('verifyModal')">✕</button>
+            </div>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px;">
+                Enviamos um código de verificação de 6 dígitos via Gmail. Digite-o abaixo:
+            </p>
+            <form onsubmit="event.preventDefault(); Auth.verifyEmail(document.getElementById('verifyEmailInput').value, document.getElementById('verifyCodeInput').value);">
+                <div class="form-group">
+                    <label>E-mail</label>
+                    <input type="email" id="verifyEmailInput" class="form-control" readonly required>
+                </div>
+                <div class="form-group">
+                    <label>Código de Verificação (6 dígitos)</label>
+                    <input type="text" id="verifyCodeInput" class="form-control" placeholder="123456" maxlength="6" required style="font-size: 20px; letter-spacing: 4px; text-align: center;">
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%;">Confirmar E-mail</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 4. FORGOT PASSWORD MODAL -->
+    <div class="modal-overlay" id="forgotModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title">🔑 Recuperar Senha</div>
+                <button class="modal-close" onclick="closeModal('forgotModal')">✕</button>
+            </div>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px;">
+                Digite seu e-mail cadastrado. Enviaremos um código via Gmail para redefinir sua senha.
+            </p>
+            <form onsubmit="event.preventDefault(); Auth.forgotPassword(document.getElementById('forgotEmail').value);">
+                <div class="form-group">
+                    <label>E-mail cadastrado</label>
+                    <input type="email" id="forgotEmail" class="form-control" placeholder="seu@email.com" required>
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%;">Enviar Código por E-mail</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 5. RESET PASSWORD MODAL -->
+    <div class="modal-overlay" id="resetModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title">🔄 Redefinir Senha</div>
+                <button class="modal-close" onclick="closeModal('resetModal')">✕</button>
+            </div>
+            <form onsubmit="event.preventDefault(); Auth.resetPassword(document.getElementById('resetEmailInput').value, document.getElementById('resetCodeInput').value, document.getElementById('resetNewPassInput').value);">
+                <div class="form-group">
+                    <label>E-mail</label>
+                    <input type="email" id="resetEmailInput" class="form-control" readonly required>
+                </div>
+                <div class="form-group">
+                    <label>Código Recebido por E-mail</label>
+                    <input type="text" id="resetCodeInput" class="form-control" placeholder="123456" maxlength="6" required>
+                </div>
+                <div class="form-group">
+                    <label>Nova Senha</label>
+                    <input type="password" id="resetNewPassInput" class="form-control" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%;">Salvar Nova Senha</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 6. STUDENT ANAMNESE FICHA MODAL (Mandatory for New Students) -->
+    <div class="modal-overlay" id="fichaModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title">📋 Ficha de Avaliação Inicial</div>
+                <button class="modal-close" onclick="closeModal('fichaModal')">✕</button>
+            </div>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px;">
+                Preencha seus dados abaixo para que seu Personal Trainer personalize seus treinos!
+            </p>
+            <form onsubmit="event.preventDefault(); Anamnese.save({ age: document.getElementById('fichaAge').value, weight: document.getElementById('fichaWeight').value, height: document.getElementById('fichaHeight').value, goal: document.getElementById('fichaGoal').value, medical_history: document.getElementById('fichaMedical').value, activity_level: document.getElementById('fichaActivity').value });">
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                    <div class="form-group">
+                        <label>Idade</label>
+                        <input type="number" id="fichaAge" class="form-control" placeholder="Ex: 25" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Peso (kg)</label>
+                        <input type="number" step="0.1" id="fichaWeight" class="form-control" placeholder="65.0" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Altura (m)</label>
+                        <input type="number" step="0.01" id="fichaHeight" class="form-control" placeholder="1.70" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Objetivo Principal</label>
+                    <select id="fichaGoal" class="form-control">
+                        <option value="HIPERTROFIA + DEFINIÇÃO">Hipertrofia + Definição</option>
+                        <option value="EMAGRECIMENTO">Emagrecimento & Queima de Gordura</option>
+                        <option value="CONDICIONAMENTO">Condicionamento Físico & Saúde</option>
+                        <option value="GANHO DE FORÇA">Ganho de Força Bruta</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Histórico de Saúde / Lesões ou Dores</label>
+                    <textarea id="fichaMedical" class="form-control" placeholder="Ex: Dores no joelho direito, hérnia de disco, nenhuma lesão..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Nível de Experiência</label>
+                    <select id="fichaActivity" class="form-control">
+                        <option value="Iniciante">Iniciante (Começando agora)</option>
+                        <option value="Intermediário" selected>Intermediário (Treina há 6 meses - 2 anos)</option>
+                        <option value="Avançado">Avançado (Mais de 2 anos)</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-primary" style="width: 100%;">Salvar Ficha & Entrar no App</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 7. STUDENT PROFILE & SECURITY SETTINGS MODAL -->
+    <div class="modal-overlay" id="profileModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title">⚙️ Perfil e Segurança</div>
+                <button class="modal-close" onclick="closeModal('profileModal')">✕</button>
+            </div>
+
+            <div class="tab-nav">
+                <button class="tab-btn prof-btn active" onclick="switchTab('prof', 'profTab1')">Dados</button>
+                <button class="tab-btn prof-btn" onclick="switchTab('prof', 'profTab2')">Alterar Senha</button>
+                <button class="tab-btn prof-btn" onclick="switchTab('prof', 'profTab3')">Segurança (2FA)</button>
+            </div>
+
+            <!-- Tab 1: Personal Info -->
+            <div id="profTab1" class="prof-content">
+                <form onsubmit="event.preventDefault(); Profile.update(document.getElementById('profFirstName').value, document.getElementById('profLastName').value, document.getElementById('profPhotoBase64').value);">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div class="form-group">
+                            <label>Seu Nome</label>
+                            <input type="text" id="profFirstName" class="form-control" placeholder="Ex: Lucas" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Sobrenome</label>
+                            <input type="text" id="profLastName" class="form-control" placeholder="Ex: Garcia" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Sua Foto de Perfil</label>
+                        <input type="file" id="profPhotoFileInput" accept="image/*" class="form-control">
+                        <input type="hidden" id="profPhotoBase64">
+                    </div>
+                    <button type="submit" class="btn-primary" style="width: 100%;">Salvar Alterações</button>
+                </form>
+                <button class="btn-secondary" style="width: 100%; margin-top: 10px;" onclick="closeModal('profileModal'); openModal('fichaModal'); Anamnese.load();">
+                    📋 Editar minha Ficha de Anamnese
+                </button>
+            </div>
+
+            <!-- Tab 2: Change Password -->
+            <div id="profTab2" class="prof-content" style="display: none;">
+                <form onsubmit="event.preventDefault(); Profile.update(null, null, document.getElementById('profCurrPassword').value, document.getElementById('profileNewPassword').value);">
+                    <div class="form-group">
+                        <label>Senha Atual</label>
+                        <input type="password" id="profCurrPassword" class="form-control" placeholder="••••••••">
+                    </div>
+                    <div class="form-group">
+                        <label>Nova Senha</label>
+                        <input type="password" id="profileNewPassword" class="form-control" placeholder="••••••••">
+                        <div class="strength-meter">
+                            <div class="strength-bar-bg"><div class="strength-bar-fill" id="profStrengthFill"></div></div>
+                            <div class="strength-text"><span id="profStrengthText">Força da senha</span></div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary" style="width: 100%;">Atualizar Senha</button>
+                </form>
+            </div>
+
+            <!-- Tab 3: 2FA TOTP App Authentication -->
+            <div id="profTab3" class="prof-content" style="display: none;">
+                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">
+                    Ative a Autenticação em 2 Etapas usando seu aplicativo preferido (Google Authenticator, Authy, etc.).
+                </p>
+                <button class="btn-secondary" style="width: 100%;" onclick="Profile.setup2FA()">📲 Gerar QR Code 2FA</button>
+
+                <div id="2faSetupStep" style="display: none; margin-top: 16px; text-align: center;">
+                    <div id="2faQrContainer"></div>
+                    <p id="2faSecretKey" style="font-size: 11px; color: var(--accent-gold); margin: 8px 0; word-break: break-all;"></p>
+                    <div class="form-group" style="margin-top: 10px;">
+                        <input type="text" id="2faVerifyTokenInput" class="form-control" placeholder="Digite o código gerado no app" maxlength="6">
+                    </div>
+                    <button class="btn-primary" style="width: 100%;" onclick="Profile.verify2FA(document.getElementById('2faVerifyTokenInput').value)">Ativar 2FA</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════ -->
+    <!-- HISTÓRICO DE TREINOS MODAL                      -->
+    <!-- ═══════════════════════════════════════════════ -->
+    <div class="modal-overlay" id="historyModal">
+        <div class="modal-card" style="max-width: 480px; max-height: 85vh; display: flex; flex-direction: column;">
+            <div class="modal-header">
+                <div class="modal-title">📜 Meu Histórico de Treinos</div>
+                <button class="modal-close" onclick="closeModal('historyModal')">&#x2715;</button>
+            </div>
+            <div id="historyList" style="overflow-y: auto; flex: 1; padding: 4px 0;">
+                <p style="color: var(--text-muted); text-align: center; padding: 24px;">Carregando...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main JavaScript App Controller -->
+    <script src="assets/script/app.js"></script>
+
+    <style>
+        /* Days without workouts appear faded */
+        .day.day-empty { opacity: 0.4; }
+        .day.day-empty span { font-style: italic; }
+    </style>
+</body>
+
+</html>
