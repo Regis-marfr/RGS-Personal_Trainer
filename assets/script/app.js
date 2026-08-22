@@ -839,15 +839,33 @@ const CMS = {
 // -------------------------------------------------------------
 function openModal(modalId) {
     const modal = document.getElementById(modalId);
-    if (modal) modal.classList.add('active');
+    if (!modal) return;
+
+    const authModals = ['authModal', 'registerModal', 'forgotModal', 'resetModal', 'verifyModal'];
+    if (authModals.includes(modalId)) {
+        authModals.forEach(id => {
+            if (id !== modalId) {
+                const other = document.getElementById(id);
+                if (other) other.classList.remove('active');
+            }
+        });
+    }
+
+    modal.classList.add('active');
     if (modalId === 'profileModal') {
         Profile.load();
     }
 }
 
-function closeModal(modalId) {
+function closeModal(modalId, returnToLogin = false) {
     const modal = document.getElementById(modalId);
     if (modal) modal.classList.remove('active');
+
+    const authSubModals = ['registerModal', 'forgotModal', 'resetModal', 'verifyModal'];
+    if (returnToLogin || (authSubModals.includes(modalId) && (!window.State || !window.State.token))) {
+        const authModal = document.getElementById('authModal');
+        if (authModal) authModal.classList.add('active');
+    }
 }
 
 function switchTab(tabGroup, selectedTabId) {

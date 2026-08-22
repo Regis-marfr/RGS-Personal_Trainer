@@ -48,13 +48,18 @@ Os e-mails são entregues com um layout escuro elegante, alinhado à identidade 
 
 ---
 
-### 2. Recuperação de Senha (`POST /api/auth/forgot-password`)
+### 3. Recuperação de Senha (`POST /api/auth/forgot-password`)
 1. O aluno solicita a recuperação informando seu e-mail.
 2. O servidor valida se o e-mail existe no banco de dados.
 3. Um código de 6 dígitos é gerado com expiração de 15 minutos (`reset_expires = NOW() + INTERVAL '15 minutes'`).
 4. O servidor envia o e-mail HTML contendo o código.
 5. O aluno insere o código e a nova senha no modal de redefinição (`POST /api/auth/reset-password`).
 6. A senha é atualizada com hash bcrypt.
+
+---
+
+### 4. Navegação por Modais de Autenticação (UX)
+- **Fechamento Inteligente (Botão "X"):** Ao fechar qualquer modal pré-login (`registerModal`, `forgotModal`, `resetModal`, `verifyModal`) clicando no botão de fechar ("X"), o aplicativo redireciona o usuário **automaticamente de volta para a Tela de Login** (`authModal`), garantindo que o fluxo não fique sem uma opção de autenticação visível.
 
 ---
 
