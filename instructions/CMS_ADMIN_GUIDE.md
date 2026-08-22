@@ -10,6 +10,11 @@ Este manual descreve como utilizar todas as funcionalidades do **CMS Administrat
 - **E-mail:** `trainer@rgspersonal.com.br`
 - **Senha Inicial:** `RGp005511@`
 
+- **Sessão & Segurança:** 
+  - **Inatividade de 5 Minutos:** Se o administrador permanecer sem interagir (mouse, teclado, clique) por 5 minutos, a sessão é encerrada por segurança e solicita novo login.
+  - **Persistência de Aba:** Ao atualizar a página (F5), o CMS permanece automaticamente na aba em que você estava trabalhando.
+  - **Botão Sair:** O botão `🚪 Sair` encerra imediatamente a sessão e limpa os tokens do navegador.
+
 > [!CAUTION]
 > Alunos tentarem fazer login nesta URL receberão a mensagem "Acesso não autorizado". Apenas contas com perfil `trainer` têm permissão para acessar o CMS.
 

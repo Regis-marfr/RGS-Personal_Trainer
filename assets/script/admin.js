@@ -79,6 +79,31 @@ function showAdminToast(message, type = 'info') {
 }
 
 // -------------------------------------------------------------
+// Inactivity Timer (5 Minutes)
+// -------------------------------------------------------------
+let adminInactivityTimer = null;
+const ADMIN_INACTIVITY_LIMIT_MS = 5 * 60 * 1000; // 5 minutos
+
+function resetAdminInactivityTimer() {
+    if (!AdminState.token) return;
+    if (adminInactivityTimer) clearTimeout(adminInactivityTimer);
+
+    adminInactivityTimer = setTimeout(() => {
+        if (AdminState.token) {
+            AdminCMS.logout(true);
+        }
+    }, ADMIN_INACTIVITY_LIMIT_MS);
+}
+
+function initAdminInactivityTracker() {
+    const events = ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
+    events.forEach(evt => {
+        window.addEventListener(evt, resetAdminInactivityTimer, { passive: true });
+    });
+    resetAdminInactivityTimer();
+}
+
+// -------------------------------------------------------------
 // Admin CMS Controller Object
 // -------------------------------------------------------------
 const AdminCMS = {
@@ -150,25 +175,58 @@ const AdminCMS = {
         this.loadStudents();
         this.loadProfile();
         this.loadExercises();
+
+        // Restore active tab or default to 'tabStudents'
+        const savedTab = localStorage.getItem('rgs_admin_active_tab') || 'tabStudents';
+        const targetBtn = document.querySelector(`.admin-tab-btn[onclick*="${savedTab}"]`);
+        this.switchTab(savedTab, targetBtn);
+
+        // Start 5-minute inactivity tracker
+        initAdminInactivityTracker();
     },
 
-    logout() {
+    logout(expired = false) {
+        if (adminInactivityTimer) clearTimeout(adminInactivityTimer);
         AdminState.token = null;
         AdminState.user = null;
         localStorage.removeItem('rgs_admin_token');
         localStorage.removeItem('rgs_admin_user');
+        localStorage.removeItem('rgs_admin_active_tab');
 
-        document.getElementById('adminDashboard').style.display = 'none';
-        document.getElementById('adminLoginPage').style.display = 'flex';
-        showAdminToast('Sessão encerrada.', 'info');
+        const dashEl = document.getElementById('adminDashboard');
+        const loginEl = document.getElementById('adminLoginPage');
+        if (dashEl) dashEl.style.display = 'none';
+        if (loginEl) loginEl.style.display = 'flex';
+
+        // Clear sensitive inputs
+        const pwdEl = document.getElementById('adminPassword');
+        const codeEl = document.getElementById('admin2faCode');
+        if (pwdEl) pwdEl.value = '';
+        if (codeEl) codeEl.value = '';
+
+        if (expired) {
+            showAdminToast('Sessão expirada por 5 minutos de inatividade. Faça login novamente.', 'error');
+        } else {
+            showAdminToast('Sessão encerrada com sucesso.', 'info');
+        }
     },
 
     switchTab(tabId, btnEl) {
+        const targetContent = document.getElementById(tabId);
+        if (!targetContent) return;
+
+        localStorage.setItem('rgs_admin_active_tab', tabId);
+
         document.querySelectorAll('.admin-tab-content').forEach(el => el.style.display = 'none');
         document.querySelectorAll('.admin-tab-btn').forEach(btn => btn.classList.remove('active'));
 
-        document.getElementById(tabId).style.display = 'block';
-        if (btnEl) btnEl.classList.add('active');
+        targetContent.style.display = 'block';
+
+        let buttonToActivate = btnEl;
+        if (!buttonToActivate) {
+            buttonToActivate = document.querySelector(`.admin-tab-btn[onclick*="${tabId}"]`);
+        }
+        if (buttonToActivate) buttonToActivate.classList.add('active');
 
         if (tabId === 'tabStudents') this.loadStudents();
         if (tabId === 'tabProfile') this.loadProfile();
