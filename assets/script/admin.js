@@ -514,15 +514,14 @@ const AdminCMS = {
         const dayWorkout = workouts[dayCode];
         if (dayWorkout) {
             document.getElementById('builderWorkoutTitle').value = dayWorkout.title || '';
-            document.getElementById('builderWarmup').value = dayWorkout.warmup || '5 min de aquecimento + mobilidade específica + 1 série leve.';
+            document.getElementById('builderWarmup').value = dayWorkout.warmup || '';
             AdminState.builderExercises = Array.isArray(dayWorkout.exercises) ? dayWorkout.exercises.map(e => {
                 if (Array.isArray(e)) return { name: e[0], sets_reps: e[1], load: e[2], tag: e[3] || '' };
                 return { ...e };
             }) : [];
         } else {
-            const defaultTitles = { SEG: 'QUADRÍCEPS', TER: 'GLÚTEO + POSTERIOR', QUA: 'SUPERIORES', QUI: 'QUADRÍCEPS', SEX: 'GLÚTEO + POSTERIOR', SAB: 'RECUPERAÇÃO' };
-            document.getElementById('builderWorkoutTitle').value = defaultTitles[dayCode] || 'TREINO';
-            document.getElementById('builderWarmup').value = '5 min de aquecimento + mobilidade específica + 1 série leve.';
+            document.getElementById('builderWorkoutTitle').value = '';
+            document.getElementById('builderWarmup').value = '';
             AdminState.builderExercises = [];
         }
 

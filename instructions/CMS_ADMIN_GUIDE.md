@@ -35,8 +35,8 @@ Este manual descreve como utilizar todas as funcionalidades do **CMS Administrat
 ### 2. Criação e Montagem de Treinos (Aba "Montar Treino")
 1. **Selecione o Aluno:** Escolha o aluno na lista suspensa.
 2. **Selecione o Dia da Semana:** Escolha o dia (`SEG`, `TER`, `QUA`, `QUI`, `SEX`, `SAB`, `DOM`).
-3. **Título do Treino:** Defina o nome do treino do dia (Ex: `QUADRÍCEPS + PANTURRILHA`).
-4. **Instruções de Aquecimento:** Digite as orientações de aquecimento/mobilidade para o aluno.
+3. **Título do Treino:** Defina o nome do treino do dia (campo limpo com placeholder indicativo `Ex: QUADRÍCEPS + PANTURRILHA` e exemplo acima).
+4. **Instruções de Aquecimento:** Digite as orientações de aquecimento/mobilidade para o aluno (campo limpo com placeholder indicativo `Ex: 5 min esteira + mobilidade...` e exemplo acima).
 5. **Adicionar Exercícios:**
    - Selecione o exercício da biblioteca.
    - Ajuste as Séries × Repetições (Ex: `3 × 12–15`).
