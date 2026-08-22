@@ -39,7 +39,9 @@ async function apiFetch(endpoint, options = {}) {
         }
 
         if (!response.ok) {
-            throw new Error(data.error || 'Ocorreu um erro na requisição.');
+            const err = new Error(data.error || 'Ocorreu um erro na requisição.');
+            err.data = data;
+            throw err;
         }
         return data;
     } catch (err) {
@@ -151,7 +153,34 @@ const Auth = {
                 openModal('fichaModal');
             }
         } catch (err) {
+            if (err.data && err.data.requires_verification) {
+                const userEmail = err.data.email || (email || '').trim();
+                document.getElementById('verifyEmailInput').value = userEmail;
+                document.getElementById('verifyCodeInput').value = '';
+                closeModal('authModal');
+                openModal('verifyModal');
+                showToast(err.message || 'Digite o código de 6 dígitos enviado para seu e-mail para ativar sua conta.', 'info');
+                return;
+            }
             showToast(err.message || 'Não foi possível conectar ao servidor. Verifique sua conexão.', 'error');
+        }
+    },
+
+    async resendCode(email) {
+        const targetEmail = (email || document.getElementById('verifyEmailInput')?.value || '').trim();
+        if (!targetEmail) {
+            showToast('Por favor, informe seu e-mail para reenviar o código.', 'error');
+            return;
+        }
+        try {
+            showToast('Enviando novo código para seu e-mail...', 'info');
+            const data = await apiFetch('/auth/resend-code', {
+                method: 'POST',
+                body: JSON.stringify({ email: targetEmail })
+            });
+            showToast(data.message || 'Novo código enviado com sucesso para seu e-mail!', 'success');
+        } catch (err) {
+            showToast(err.message || 'Erro ao reenviar código.', 'error');
         }
     },
 

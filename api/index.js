@@ -289,6 +289,54 @@ app.post('/api/auth/verify-email', async (req, res) => {
     }
 });
 
+// 2b. Resend Verification Code Endpoint (Student Action)
+app.post('/api/auth/resend-code', async (req, res) => {
+    try {
+        const { email } = req.body;
+        const cleanEmail = (email || '').trim().toLowerCase();
+
+        let user = null;
+        if (pool) {
+            const result = await pool.query('SELECT * FROM users WHERE email = $1 AND role = $2', [cleanEmail, 'student']);
+            if (result.rows.length === 0) return res.status(404).json({ error: 'Usuário não encontrado.' });
+            user = result.rows[0];
+        } else {
+            user = memoryStore.users.find(u => u.email === cleanEmail && u.role === 'student');
+            if (!user) return res.status(404).json({ error: 'Usuário não encontrado.' });
+        }
+
+        if (user.is_verified) {
+            return res.status(400).json({ error: 'Sua conta já está ativada. Faça login normalmente.' });
+        }
+
+        const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+        if (pool) {
+            await pool.query(
+                'UPDATE users SET verification_code = $1, code_created_at = NOW() WHERE id = $2',
+                [verificationCode, user.id]
+            );
+        } else {
+            user.verification_code = verificationCode;
+            user.code_created_at = new Date();
+        }
+
+        await sendEmailCode(
+            user.email,
+            '✅ RGS Personal Trainer — Novo código de ativação',
+            verificationCode,
+            user.name,
+            'utilize o código abaixo no aplicativo para ativar sua conta.',
+            'Código válido por 30 minutos. Se você não solicitou este e-mail, ignore com segurança.'
+        );
+
+        return res.json({ message: 'Novo código de confirmação enviado para seu e-mail!' });
+    } catch (err) {
+        console.error('[ResendCode]', err);
+        res.status(500).json({ error: 'Erro ao reenviar código de confirmação.' });
+    }
+});
+
 // 3. Login Endpoint (Supports Student & Personal Trainer)
 app.post('/api/auth/login', async (req, res) => {
     try {
@@ -310,7 +358,11 @@ app.post('/api/auth/login', async (req, res) => {
         if (!match) return res.status(401).json({ error: 'E-mail ou senha inválidos.' });
 
         if (!user.is_verified) {
-            return res.status(403).json({ error: 'E-mail não verificado. Por favor, confirme seu cadastro.', requires_verification: true });
+            return res.status(403).json({
+                error: 'E-mail não verificado. Digite o código enviado para seu e-mail para ativar sua conta.',
+                requires_verification: true,
+                email: cleanEmail
+            });
         }
 
         // 2FA TOTP check

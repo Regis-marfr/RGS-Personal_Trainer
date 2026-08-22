@@ -162,11 +162,11 @@
     <div class="modal-overlay" id="verifyModal">
         <div class="modal-card">
             <div class="modal-header">
-                <div class="modal-title">✉️ Confirmar E-mail</div>
+                <div class="modal-title">✉️ Ativação de Conta — Confirmar E-mail</div>
                 <button class="modal-close" onclick="closeModal('verifyModal')">✕</button>
             </div>
             <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px;">
-                Enviamos um código de verificação de 6 dígitos via Gmail. Digite-o abaixo:
+                Digite o código de 6 dígitos enviado para o seu e-mail para ativar seu acesso:
             </p>
             <form onsubmit="event.preventDefault(); Auth.verifyEmail(document.getElementById('verifyEmailInput').value, document.getElementById('verifyCodeInput').value);">
                 <div class="form-group">
@@ -174,11 +174,17 @@
                     <input type="email" id="verifyEmailInput" class="form-control" readonly required>
                 </div>
                 <div class="form-group">
-                    <label>Código de Verificação (6 dígitos)</label>
+                    <label>Código de Ativação (6 dígitos)</label>
                     <input type="text" id="verifyCodeInput" class="form-control" placeholder="123456" maxlength="6" required style="font-size: 20px; letter-spacing: 4px; text-align: center;">
                 </div>
-                <button type="submit" class="btn-primary" style="width: 100%;">Confirmar E-mail</button>
+                <button type="submit" class="btn-primary" style="width: 100%;">Ativar Minha Conta</button>
             </form>
+            <div style="margin-top: 16px; font-size: 12px; text-align: center; color: var(--text-muted);">
+                Não recebeu ou seu código expirou (30 min)?<br>
+                <a href="#" style="color: var(--primary-red); text-decoration: underline;" onclick="Auth.resendCode(document.getElementById('verifyEmailInput').value);">
+                    📩 Reenviar novo código por e-mail
+                </a>
+            </div>
         </div>
     </div>
 
