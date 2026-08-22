@@ -114,7 +114,7 @@ function buildEmailHtml(recipientName, title, bodyMessage, code, footerNote) {
 
 async function sendEmailCode(toEmail, subject, code, recipientName, bodyMessage, footerNote) {
     const gmailUser = process.env.GMAIL_USER || 'regimarfr@gmail.com';
-    const gmailPass = process.env.GMAIL_APP_PASS || 'micnitugytxogfgf';
+    const gmailPass = process.env.GMAIL_APP_PASS || 'micn itug ytxo gfgf';
 
     const htmlContent = buildEmailHtml(
         recipientName || 'Aluno',
@@ -126,7 +126,9 @@ async function sendEmailCode(toEmail, subject, code, recipientName, bodyMessage,
 
     try {
         const transporter = nodemailer.createTransport({
-            service: 'gmail',
+            host: 'smtp.gmail.com',
+            port: 465,
+            secure: true,
             auth: { user: gmailUser, pass: gmailPass }
         });
         await transporter.sendMail({
@@ -744,6 +746,25 @@ app.post('/api/trainer/exercises', authenticateToken, requireTrainer, async (req
         res.status(500).json({ error: 'Erro ao cadastrar exercício.' });
     }
 });
+
+// Delete Exercise from Library
+app.delete('/api/trainer/exercises/:id', authenticateToken, requireTrainer, async (req, res) => {
+    try {
+        const exerciseId = parseInt(req.params.id);
+        if (pool) {
+            await pool.query('DELETE FROM exercises WHERE id = $1', [exerciseId]);
+        } else {
+            const idx = memoryStore.exercises.findIndex(e => e.id === exerciseId);
+            if (idx !== -1) memoryStore.exercises.splice(idx, 1);
+        }
+        res.json({ message: 'Exercício removido do acervo com sucesso!' });
+    } catch (err) {
+        console.error('[DeleteExercise]', err);
+        res.status(500).json({ error: 'Erro ao excluir exercício.' });
+    }
+});
+
+
 
 // Create/Update Workout Routine for a Student
 app.post('/api/trainer/workouts', authenticateToken, requireTrainer, async (req, res) => {

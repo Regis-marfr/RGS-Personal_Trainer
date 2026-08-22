@@ -371,17 +371,36 @@ const AdminCMS = {
         }
 
         container.innerHTML = exercises.map(ex => `
-            <div class="exercise-item">
-                <div>
+            <div class="exercise-item" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                <div style="flex:1; min-width:0;">
                     <strong style="color:#fff;">${ex.name}</strong>
                     <small style="color:var(--text-muted); margin-left:6px;">(${ex.category})</small>
                 </div>
-                <div style="text-align:right;">
-                    <span style="color:var(--primary-red); font-weight:bold; font-size:12px;">${ex.default_sets_reps}</span>
-                    ${ex.default_load ? `<small style="display:block; color:var(--accent-gold); font-size:11px;">Carga: ${ex.default_load}</small>` : ''}
+                <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
+                    <div style="text-align:right;">
+                        <span style="color:var(--primary-red); font-weight:bold; font-size:12px;">${ex.default_sets_reps}</span>
+                        ${ex.default_load ? `<small style="display:block; color:var(--accent-gold); font-size:11px;">Carga: ${ex.default_load}</small>` : ''}
+                    </div>
+                    <button type="button" onclick="AdminCMS.deleteExercise(${ex.id}, '${(ex.name || '').replace(/'/g, "\\'")}')"
+                            style="background:transparent; border:1px solid #e94b50; color:#e94b50; border-radius:6px; padding:4px 8px; font-size:11px; cursor:pointer; font-weight:600; white-space:nowrap; flex-shrink:0;">
+                        🗑️ Excluir
+                    </button>
                 </div>
             </div>
         `).join('');
+    },
+
+    async deleteExercise(exerciseId, exerciseName) {
+        if (!confirm(`Excluir o exercício "${exerciseName}" do acervo?\n\nEsta ação não pode ser desfeita.`)) {
+            return;
+        }
+        try {
+            await adminApiFetch(`/trainer/exercises/${exerciseId}`, { method: 'DELETE' });
+            showAdminToast(`Exercício "${exerciseName}" removido do acervo!`, 'success');
+            this.loadExercises();
+        } catch (err) {
+            showAdminToast(err.message || 'Erro ao excluir exercício.', 'error');
+        }
     },
 
     async addExercise(name, category, default_sets_reps, default_load) {
