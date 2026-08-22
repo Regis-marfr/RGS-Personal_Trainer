@@ -226,7 +226,7 @@ app.post('/api/auth/register', async (req, res) => {
         return res.json({ message: 'Cadastro iniciado! Enviamos um código de confirmação para seu e-mail.', email: cleanEmail });
     } catch (err) {
         console.error('[Register]', err);
-        res.status(500).json({ error: 'Erro interno ao realizar cadastro.' });
+        res.status(500).json({ error: 'Erro interno ao realizar cadastro: ' + (err.message || err) });
     }
 });
 
@@ -313,7 +313,7 @@ app.post('/api/auth/login', async (req, res) => {
         });
     } catch (err) {
         console.error('[Login]', err);
-        res.status(500).json({ error: 'Erro no servidor ao realizar login.' });
+        res.status(500).json({ error: 'Erro no servidor ao realizar login: ' + (err.message || err) });
     }
 });
 
